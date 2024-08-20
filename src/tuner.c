@@ -299,31 +299,27 @@ void initTunerTuples(TEntry *entry, TVector coeffs, TArray methods) {
 
 double computeOptimalK(TEntry *entries) {
 
-    double start = -10, end = 10, step = 1;
-    double curr = start, error, best = staticEvaluationErrors(entries, start);
+    const double eps = pow(10, -KPRECISION);
+    double low = -10, high = 10, mid;
+    double E1, E2;
 
     printf("\n\nComputing optimal K\n");
 
-    for (int i = 0; i < KPRECISION; i++) {
-
-        curr = start - step;
-        while (curr < end) {
-            curr = curr + step;
-            error = staticEvaluationErrors(entries, curr);
-            if (error <= best)
-                best = error, start = curr;
+    while (low + eps <= high) {
+        mid = (low + high) / 2.0;
+        E1 = staticEvaluationErrors(entries, mid);
+        E2 = staticEvaluationErrors(entries, mid + eps);
+        if (E1 < E2) {
+            high = mid;
+        } else {
+            low = mid + eps;
         }
-
-        printf("Epoch [%d] K = [%.9f] E = [%.9f]\n", i, start, best);
-
-        end   = start + step;
-        start = start - step;
-        step  = step  / 10.0;
     }
 
+    printf("K = [%.9f] E = [%.9f]\n", low, E1);
     printf("\n");
 
-    return start;
+    return low;
 }
 
 double staticEvaluationErrors(TEntry *entries, double K) {
